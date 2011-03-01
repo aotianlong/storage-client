@@ -1,3 +1,4 @@
+# encoding: utf-8
 # StorageClient
 # This is a ruby wrapper for the soundcloud API
 #
@@ -13,20 +14,57 @@ require 'oauth_active_resource'
 
 
 module StorageClient
-   # Will create an OAuth Consumer for you.
-   #
-   # You have to register your application on soundcloud.com to get a consumer token and secret.
-   #
-   # Optionally you can specify another provider site (i.e. http://api.sandbox-soundcloud.com)
-   #
-   # Default provider site is http://api.soundcloud.com
-   def self.consumer(consumer_token,consumer_secret, site = 'http://storage.railser.com')
-    return OAuth::Consumer.new(consumer_token, consumer_secret, {
-        :site               => site,
-        :request_token_path => "/oauth/request_token",
-        :access_token_path  => "/oauth/access_token",
-        :authorize_path     => "/oauth/authorize"
-      })
+
+  def self.client
+    site = config['site']
+    @client ||= register({:access_token => access_token,:site => site })
+  end
+
+  def self.access_token
+    @access_token ||= OAuth::AccessToken.new(consumer, config['access_token'], config['access_secret'])
+  end
+
+  def self.all_config
+    @all_config ||= YAML::load_file(Rails.root.join("config","storage_client.yml"))
+  end
+
+  def self.config
+    @config ||= all_config[Rails.env]
+  end
+
+  def self.bucket
+    @bucket ||= Bucket.find bucket_id
+  end
+
+  def self.bucket_id
+    @bucket_id ||= config['bucket']
+  end
+
+  def self.build_file(file,attributes = {})
+    attributes.merge! :bucket_id => bucket_id
+    attributes.delete :file
+    file_object = client.FileObject.new attributes
+    file_object.file = file
+    file_object
+  end
+
+  # Will create an OAuth Consumer for you.
+  #
+  # You have to register your application on soundcloud.com to get a consumer token and secret.
+  #
+  # Optionally you can specify another provider site (i.e. http://api.sandbox-soundcloud.com)
+  #
+  # Default provider site is http://api.soundcloud.com
+  def self.consumer
+    site = config['site'] if config['site']
+    consumer_token = config['consumer_token']
+    consumer_secret = config['consumer_secret']
+    @consumer ||= OAuth::Consumer.new(consumer_token, consumer_secret, {
+      :site               => site,
+      :request_token_path => "/oauth/request_token",
+      :access_token_path  => "/oauth/access_token",
+      :authorize_path     => "/oauth/authorize"
+    })
   end
 
 

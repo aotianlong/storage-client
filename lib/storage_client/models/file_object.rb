@@ -1,3 +1,4 @@
+# encoding: utf-8
 module StorageClient
   module Models
 
@@ -18,11 +19,12 @@ module StorageClient
       def file=(args)
         file,content_type = args
         content_type ||= "text/plain"
+        file = file.path if file.respond_to?(:path)
         raise "File Not Exists: #{file}" unless File.exists?(file)
         self.content_type = content_type
         self.name = File.basename(file)
         self.file_content = Base64.encode64(File.read(file))
-        file
+        self
       end
 
       # Convenience method to find the logged in user

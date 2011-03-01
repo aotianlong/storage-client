@@ -1,3 +1,4 @@
+# encoding: utf-8
 module StorageClient
   
   # Subclass to force API users to pass a consumer key with each request.

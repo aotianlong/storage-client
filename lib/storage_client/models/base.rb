@@ -1,3 +1,4 @@
+# encoding: utf-8
 module StorageClient
   module Models
     class Base < OAuthActiveResource::Resource #:nodoc:
